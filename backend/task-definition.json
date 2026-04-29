@@ -1,0 +1,109 @@
+{
+  "family": "genderize-task",
+  "executionRoleArn": "arn:aws:iam::012834916544:role/ecsTaskExecutionRole",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": [ "FARGATE" ],
+  "cpu": "256",
+  "memory": "1024",
+  "runtimePlatform": {
+    "cpuArchitecture": "X86_64",
+    "operatingSystemFamily": "LINUX"
+  },
+  "containerDefinitions": [
+    {
+      "name": "genderize-container",
+      "image": "012834916544.dkr.ecr.eu-north-1.amazonaws.com/genderize:latest",
+      "cpu": 0,
+      "essential": true,
+      "portMappings": [
+        {
+          "name": "genderize-8080-tcp",
+          "containerPort": 8080,
+          "hostPort": 8080,
+          "protocol": "tcp",
+          "appProtocol": "http"
+        }
+      ],
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "curl -f http://localhost:8080/health || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      },
+      "environment": [
+        {
+          "name": "ASPNETCORE_ENVIRONMENT",
+          "value": "Production"
+        },
+        {
+          "name": "ASPNETCORE_URLS",
+          "value": "http://+:8080"
+        },
+        {
+          "name": "ExternalApi__GenderizeUrl",
+          "value": "https://api.genderize.io"
+        },
+        {
+          "name": "ExternalApi__AgifyUrl",
+          "value": "https://api.agify.io"
+        },
+        {
+          "name": "ExternalApi__NationalizeUrl",
+          "value": "https://api.nationalize.io"
+        },
+        {
+          "name": "Features__CreateProfile",
+          "value": "false"
+        },
+        {
+          "name": "Features__GetProfiles",
+          "value": "true"
+        },
+        {
+          "name": "Features__SearchProfiles",
+          "value": "true"
+        },
+        {
+          "name": "Features__GetProfileById",
+          "value": "false"
+        },
+        {
+          "name": "Features__GetAllProfiles",
+          "value": "false"
+        },
+        {
+          "name": "Features__DeleteProfile",
+          "value": "false"
+        },
+        {
+          "name": "Features__ClassifyName",
+          "value": "false"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "ConnectionStrings__DefaultConnection",
+          "valueFrom": "arn:aws:ssm:eu-north-1:012834916544:parameter/fourteen/production/ConnectionStrings__DefaultConnection"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/genderize-task",
+          "awslogs-create-group": "true",
+          "awslogs-region": "eu-north-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "environmentFiles": [],
+      "mountPoints": [],
+      "volumesFrom": [],
+      "ulimits": [],
+      "systemControls": []
+    }
+  ]
+}
